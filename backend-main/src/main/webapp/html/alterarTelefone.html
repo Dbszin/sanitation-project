@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Telefone</title>
+  <link rel="stylesheet" href="../css/cadastro.css">
+</head>
+<body>
+  <div class="form-container">
+    <h1>Alterar Telefone</h1>
+    <form action="../alterarTelefone" method="POST">
+   	  <input type="hidden" name="formAction" value="/alterarTelefone">
+      <label for="senha-atual">Senha Atual:</label>
+      <input type="password" id="senha-atual" name="senha-atual" required>
+
+      <label for="novo-telefone">Novo Telefone:</label>
+      <input type="tel" id="novo-telefone" name="novo-telefone" required>
+
+      <button type="submit">Salvar Alteração</button>
+    </form>
+  </div>
+</body>
+</html>

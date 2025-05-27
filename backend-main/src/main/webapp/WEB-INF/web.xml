@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee" version="5.0">
+
+<welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+</welcome-file-list>
+
+
+
+	<servlet>
+		<servlet-name>CadastrarUsuario</servlet-name>
+        <servlet-class>sanea.controller.cadastrarUsuario</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CadastrarUsuario</servlet-name>
+        <url-pattern>/Cadastrar</url-pattern>
+    </servlet-mapping>
+    
+    
+    
+    <servlet>
+		<servlet-name>LoginUsuario</servlet-name>
+        <servlet-class>sanea.controller.loginUsuario</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginUsuario</servlet-name>
+        <url-pattern>/Logar</url-pattern>
+    </servlet-mapping>
+    
+    
+    
+    <servlet>
+		<servlet-name>UserName</servlet-name>
+        <servlet-class>sanea.controller.getUserName</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserName</servlet-name>
+        <url-pattern>/getName</url-pattern>
+    </servlet-mapping>
+    
+    
+    
+    <servlet>
+		<servlet-name>AlterarUsuario</servlet-name>
+        <servlet-class>sanea.controller.alterarUsuario</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AlterarUsuario</servlet-name>
+        <url-pattern>/alterarEmail</url-pattern>
+        <url-pattern>/alterarTelefone</url-pattern>
+        <url-pattern>/alterarSenha</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+		<servlet-name>CadastrarUsuario</servlet-name>
+        <servlet-class>sanea.controller.cadastrarRelatorio</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CadastrarUsuario</servlet-name>
+        <url-pattern>/CadastrarRelato</url-pattern>
+    </servlet-mapping>
+    
+    <filter>
+    	<filter-name>JwtFilter</filter-name>
+    	<filter-class>sanea.controller.JwtFilter</filter-class>
+	</filter>
+	<filter-mapping>
+   		 <filter-name>JwtFilter</filter-name>
+   		 <url-pattern>/CadastrarRelato</url-pattern> <!-- Protege apenas relatórios -->
+	</filter-mapping>
+
+</web-app>

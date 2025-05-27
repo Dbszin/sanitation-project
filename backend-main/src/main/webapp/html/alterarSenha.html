@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Senha</title>
+  <link rel="stylesheet" href="../css/cadastro.css">
+</head>
+<body>
+  <div class="form-container">
+    <h1>Alterar Senha</h1>
+    <form action="../alterarSenha" method="POST">
+   	  <input type="hidden" name="formAction" value="/alterarSenha">
+      <label for="senha-atual">Senha Atual:</label>
+      <input type="password" id="senha-atual" name="senha-atual" required>
+
+      <label for="nova-senha">Nova Senha:</label>
+      <input type="password" id="nova-senha" name="nova-senha" required>
+
+      <label for="repetir-nova-senha">Repetir Nova Senha:</label>
+      <input type="password" id="repetir-nova-senha" name="repetir-nova-senha" required>
+
+      <button type="submit">Salvar Alteração</button>
+    </form>
+  </div>
+</body>
+</html>
