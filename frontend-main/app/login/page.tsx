@@ -60,32 +60,72 @@ export default function LoginPage() {
     },
   });
   
-  const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
-    // Em um app real, você enviaria esses dados para o backend para autenticação
-    console.log(values);
-    
-    toast({
-      title: "Login realizado com sucesso!",
-      description: "Redirecionando para sua área de usuário...",
-    });
-    
-    // Redirecionando para a página de perfil
-    setTimeout(() => {
-      router.push('/perfil');
-    }, 1000);
+  const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
+    try {
+      const response = await fetch('http://localhost:8080/Logar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(values as any),
+        credentials: 'include',
+      });
+      if (response.ok) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando para sua área de usuário...",
+        });
+        setTimeout(() => {
+          router.push('/perfil');
+        }, 1000);
+      } else {
+        toast({
+          title: "Erro ao logar",
+          description: "Verifique suas credenciais.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const onCadastroSubmit = (values: z.infer<typeof cadastroSchema>) => {
-    // Em um app real, você enviaria esses dados para o backend para registro
-    console.log(values);
-    
-    toast({
-      title: "Cadastro realizado com sucesso!",
-      description: "Sua conta foi criada. Agora você pode fazer login.",
-    });
-    
-    setActiveTab('login');
-    cadastroForm.reset();
+  const onCadastroSubmit = async (values: z.infer<typeof cadastroSchema>) => {
+    try {
+      const response = await fetch('http://localhost:8080/Cadastrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          nome: values.nome,
+          email: values.email,
+          telefone: values.telefone,
+          cpf: values.cpf,
+          senha: values.senha,
+        }),
+      });
+      if (response.ok) {
+        toast({
+          title: "Cadastro realizado com sucesso!",
+          description: "Você já pode fazer login com suas credenciais.",
+        });
+        setActiveTab('login');
+        cadastroForm.reset();
+      } else {
+        toast({
+          title: "Erro ao cadastrar",
+          description: "Verifique os dados e tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

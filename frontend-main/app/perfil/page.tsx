@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +24,9 @@ const formSchema = z.object({
   endereco: z.string(),
   email: z.string().email({ message: 'Email inválido' }),
   telefone: z.string().min(10, { message: 'Telefone inválido' }),
+  senhaAtual: z.string(),
+  novaSenha: z.string(),
+  repetirNovaSenha: z.string(),
 });
 
 interface RelatoProps {
@@ -38,6 +41,7 @@ interface RelatoProps {
 export default function PerfilPage() {
   const [editOpen, setEditOpen] = useState(false);
   const { toast } = useToast();
+  const [userName, setUserName] = useState('');
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,6 +65,135 @@ export default function PerfilPage() {
     
     setEditOpen(false);
   };
+
+  const onAlterarEmail = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await fetch('http://localhost:8080/alterarEmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          'novo-email': values.email,
+          'senha-atual': values.senhaAtual,
+        }),
+        credentials: 'include',
+      });
+      if (response.ok) {
+        toast({
+          title: "Email alterado com sucesso!",
+          description: "Seu email foi atualizado.",
+        });
+        setEditOpen(false);
+      } else {
+        toast({
+          title: "Erro ao alterar email",
+          description: "Verifique os dados e tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const onAlterarTelefone = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await fetch('http://localhost:8080/alterarTelefone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          'novo-telefone': values.telefone,
+          'senha-atual': values.senhaAtual,
+        }),
+        credentials: 'include',
+      });
+      if (response.ok) {
+        toast({
+          title: "Telefone alterado com sucesso!",
+          description: "Seu telefone foi atualizado.",
+        });
+        setEditOpen(false);
+      } else {
+        toast({
+          title: "Erro ao alterar telefone",
+          description: "Verifique os dados e tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const onAlterarSenha = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await fetch('http://localhost:8080/alterarSenha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          'senha-atual': values.senhaAtual,
+          'nova-senha': values.novaSenha,
+          'repetir-nova-senha': values.repetirNovaSenha,
+        }),
+        credentials: 'include',
+      });
+      if (response.ok) {
+        toast({
+          title: "Senha alterada com sucesso!",
+          description: "Sua senha foi atualizada.",
+        });
+        setEditOpen(false);
+      } else {
+        toast({
+          title: "Erro ao alterar senha",
+          description: "Verifique os dados e tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/getName', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserName(data.userName);
+        } else {
+          toast({
+            title: "Erro ao carregar dados",
+            description: "Não foi possível obter seus dados. Tente fazer login novamente.",
+            variant: "destructive",
+          });
+        }
+      } catch (e) {
+        toast({
+          title: "Erro de conexão",
+          description: "Não foi possível conectar ao servidor.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchUserName();
+  }, [toast]);
 
   // Dados mockados para o exemplo
   const relatos: RelatoProps[] = [

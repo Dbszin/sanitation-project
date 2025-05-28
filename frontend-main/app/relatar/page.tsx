@@ -91,18 +91,45 @@ export default function RelatarPage() {
     }
   };
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Here you would send the data to your backend
-    console.log(values);
-    
-    toast({
-      title: "Problema relatado com sucesso!",
-      description: "Obrigado por contribuir para melhorar o saneamento de Santos.",
-    });
-    
-    // Reset form and go back to first tab
-    form.reset();
-    setActiveTab('tipo');
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await fetch('http://localhost:8080/CadastrarRelato', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          tipo_problema: values.tipoProblema,
+          descricao: values.descricaoProblema,
+          data_ocorrido: values.dataOcorrido,
+          cep: values.cep,
+          rua: values.logradouro,
+          numero: values.numero,
+          bairro: values.bairro,
+          cidade: values.cidade,
+          estado: values.estado,
+        }),
+        credentials: 'include',
+      });
+      if (response.ok) {
+        toast({
+          title: "Problema relatado com sucesso!",
+          description: "Obrigado por contribuir para melhorar o saneamento de Santos.",
+        });
+        form.reset();
+        setActiveTab('tipo');
+      } else {
+        toast({
+          title: "Erro ao relatar problema",
+          description: "Verifique os dados e tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor.",
+        variant: "destructive",
+      });
+    }
   };
 
   const goToNextTab = () => {
