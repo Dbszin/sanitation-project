@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import MapSection from '@/components/sections/map-section';
 import FeatureCard from '@/components/cards/feature-card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import heroImage from '../assets/heroimage.png'
 
 export default function Home() {
   return (
