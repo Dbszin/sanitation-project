@@ -47,9 +47,7 @@ public class loginUsuario extends HttpServlet {
 		usuario.setEmail(request.getParameter("email"));
 		usuario.setSenha(request.getParameter("senha"));
 		
-		int UserID = Integer.parseInt(usuario.logar());
-		
-		
+		int UserID = usuario.logar();
 		
 		if (UserID > 0) { // Se o usuário for válido
             String token = JwtUtil.generateToken(UserID); // Gera JWT
