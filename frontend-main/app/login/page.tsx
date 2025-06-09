@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { LogIn, UserPlus, Mail, KeyRound, User, Calendar, Phone } from 'lucide-react';
+import { login, cadastrarUsuario } from '@/lib/api';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -60,33 +61,32 @@ export default function LoginPage() {
     },
   });
   
-  const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
+  const onLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/Logar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(values as any),
-        credentials: 'include',
-      });
-      if (response.ok) {
+      const response = await login(loginForm.getValues('email'), loginForm.getValues('senha'));
+      console.log('Login response:', response); // Debug
+      
+      if (response.token && response.userId) {
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando para sua área de usuário...",
         });
-        setTimeout(() => {
-          router.push('/perfil');
-        }, 1000);
+        router.push('/perfil');
+        router.refresh(); // Força atualização da página
       } else {
+        console.error('Token ou userId não recebidos:', response); // Debug
         toast({
-          title: "Erro ao logar",
-          description: "Verifique suas credenciais.",
+          title: "Erro ao fazer login",
+          description: "Tente novamente.",
           variant: "destructive",
         });
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('Erro no login:', error); // Debug
       toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor.",
+        title: "Erro ao fazer login",
+        description: "Verifique suas credenciais.",
         variant: "destructive",
       });
     }
@@ -94,35 +94,26 @@ export default function LoginPage() {
   
   const onCadastroSubmit = async (values: z.infer<typeof cadastroSchema>) => {
     try {
-      const response = await fetch('http://localhost:8080/Cadastrar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          nome: values.nome,
-          email: values.email,
-          telefone: values.telefone,
-          cpf: values.cpf,
-          senha: values.senha,
-        }),
+      const telefoneSemFormatacao = values.telefone.replace(/\D/g, '');
+      
+      await cadastrarUsuario({
+        nome: values.nome,
+        email: values.email,
+        telefone: telefoneSemFormatacao,
+        cpf: values.cpf,
+        senha: values.senha,
       });
-      if (response.ok) {
-        toast({
-          title: "Cadastro realizado com sucesso!",
-          description: "Você já pode fazer login com suas credenciais.",
-        });
-        setActiveTab('login');
-        cadastroForm.reset();
-      } else {
-        toast({
-          title: "Erro ao cadastrar",
-          description: "Verifique os dados e tente novamente.",
-          variant: "destructive",
-        });
-      }
-    } catch (e) {
+      
       toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor.",
+        title: "Cadastro realizado com sucesso!",
+        description: "Você já pode fazer login com suas credenciais.",
+      });
+      setActiveTab('login');
+      cadastroForm.reset();
+    } catch (e: any) {
+      toast({
+        title: "Erro ao cadastrar",
+        description: e.response?.data?.error || "Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
@@ -156,7 +147,7 @@ export default function LoginPage() {
             
             <TabsContent value="login">
               <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                <form onSubmit={onLoginSubmit} className="space-y-4">
                   <FormField
                     control={loginForm.control}
                     name="email"
@@ -322,14 +313,6 @@ export default function LoginPage() {
                             <Input 
                               {...field} 
                               placeholder="(00) 00000-0000"
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, '');
-                                const formattedValue = value
-                                  .replace(/^(\d{2})(\d)/g, '($1) $2')
-                                  .replace(/(\d)(\d{4})$/, '$1-$2')
-                                  .substring(0, 15);
-                                field.onChange(formattedValue);
-                              }}
                               className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
                             />
                           </div>

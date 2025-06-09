@@ -47,8 +47,14 @@ public class Usuario {
 		this.cpf = cpf;
 	}
 	
-	public void cadastrar() {
-		new CadastroDao().cadastrarUsuario(this);
+	public boolean cadastrar() {
+		try {
+			new CadastroDao().cadastrarUsuario(this);
+			return true;
+		} catch (Exception e) {
+			System.err.println("Erro ao cadastrar usuário: " + e.getMessage());
+			return false;
+		}
 	}
 	
 	public String logar() {
@@ -56,9 +62,9 @@ public class Usuario {
 		return UserID;
 	}
 	
-	public String Username() {
-		String UserName = (new GetUserNameDao()).GetUserName(this);
-		return UserName;
+	public Usuario Username() {
+		Usuario usuario = (new GetUserNameDao()).GetUserName(this);
+		return usuario;
 	}
 	
 	public void alterar() {

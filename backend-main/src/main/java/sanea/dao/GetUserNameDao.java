@@ -8,9 +8,8 @@ import sanea.model.Usuario;
 
 public class GetUserNameDao {
 		
-		public String GetUserName(Usuario usuario) {
-			String sql = "SELECT nome FROM usuarios WHERE id = ?";
-			String UserName = null;
+		public Usuario GetUserName(Usuario usuario) {
+			String sql = "SELECT nome, email, telefone, cpf FROM usuarios WHERE id = ?";
 			
 			try {
 				Connection conn = MySqlConnection.conectar();
@@ -21,22 +20,24 @@ public class GetUserNameDao {
 				ResultSet rs = ps.executeQuery();
 				
 				if (rs.next()) {
-				    UserName = rs.getString("nome");
-				    System.out.println("NOME do Usuario LOGADO: " + UserName);
-				    
-				    
+				    usuario.setNome(rs.getString("nome"));
+				    usuario.setEmail(rs.getString("email"));
+				    usuario.setTelefone(rs.getString("telefone"));
+				    usuario.setCpf(rs.getString("cpf"));
+				    System.out.println("Dados do Usuario LOGADO: " + usuario.getNome());
 				} else {
 				    // ID não reconhecido
 					System.out.println("ID não encontrado...");
 					System.out.println("ID do Usuario: " + usuario.getIdUsuario());
+					return null;
 				}
-
 				
 			} catch(Exception e) {
-				System.err.println("Erro ao buscar nome no Banco: " + e.getMessage());
+				System.err.println("Erro ao buscar dados no Banco: " + e.getMessage());
+				return null;
 			}
 			
-			return UserName;
+			return usuario;
 		}
 		
 	}

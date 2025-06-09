@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
-  User, MapPin, FileText, Bell, Settings, PlusCircle, Check, AlertTriangle 
+  User, MapPin, FileText, Bell, Settings, PlusCircle, Check, AlertTriangle, Phone 
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -17,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { getUserName, alterarEmail, alterarTelefone, alterarSenha, logout, atualizarPerfil } from '@/lib/api';
 
 const formSchema = z.object({
   nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
@@ -41,59 +43,72 @@ interface RelatoProps {
 export default function PerfilPage() {
   const [editOpen, setEditOpen] = useState(false);
   const { toast } = useToast();
-  const [userName, setUserName] = useState('');
-  
+  const [userData, setUserData] = useState({
+    id: 0,
+    nome: '',
+    email: '',
+    telefone: '',
+    cpf: ''
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nome: 'João Silva',
-      dataNascimento: '1990-05-12',
-      endereco: 'Rua Exemplo, 123 - Bairro, Santos, SP',
-      email: 'joao@example.com',
-      telefone: '(13) 99999-9999',
+      nome: '',
+      dataNascimento: '',
+      endereco: '',
+      email: '',
+      telefone: '',
     },
   });
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Em um app real, você enviaria esses dados para o backend
-    console.log(values);
-    
-    toast({
-      title: "Dados atualizados",
-      description: "Suas informações pessoais foram atualizadas com sucesso!",
-    });
-    
-    setEditOpen(false);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      await atualizarPerfil({
+        nome: values.nome,
+        email: values.email,
+        telefone: values.telefone,
+        dataNascimento: values.dataNascimento,
+        endereco: values.endereco,
+      });
+      
+      toast({
+        title: "Dados atualizados",
+        description: "Suas informações pessoais foram atualizadas com sucesso!",
+      });
+      
+      // Atualiza os dados do usuário
+      setUserData(prev => ({
+        ...prev,
+        nome: values.nome,
+        email: values.email,
+        telefone: values.telefone,
+      }));
+      
+      setEditOpen(false);
+    } catch (e: any) {
+      toast({
+        title: "Erro ao atualizar dados",
+        description: e.response?.data?.error || "Verifique os dados e tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onAlterarEmail = async (values: z.infer<typeof formSchema>) => {
     try {
-      const response = await fetch('http://localhost:8080/alterarEmail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'novo-email': values.email,
-          'senha-atual': values.senhaAtual,
-        }),
-        credentials: 'include',
-      });
-      if (response.ok) {
-        toast({
-          title: "Email alterado com sucesso!",
-          description: "Seu email foi atualizado.",
-        });
-        setEditOpen(false);
-      } else {
-        toast({
-          title: "Erro ao alterar email",
-          description: "Verifique os dados e tente novamente.",
-          variant: "destructive",
-        });
-      }
-    } catch (e) {
+      await alterarEmail(values.email, values.senhaAtual);
       toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor.",
+        title: "Email alterado com sucesso!",
+        description: "Seu email foi atualizado.",
+      });
+      setEditOpen(false);
+    } catch (e: any) {
+      toast({
+        title: "Erro ao alterar email",
+        description: e.response?.data?.error || "Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
@@ -101,32 +116,16 @@ export default function PerfilPage() {
 
   const onAlterarTelefone = async (values: z.infer<typeof formSchema>) => {
     try {
-      const response = await fetch('http://localhost:8080/alterarTelefone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'novo-telefone': values.telefone,
-          'senha-atual': values.senhaAtual,
-        }),
-        credentials: 'include',
-      });
-      if (response.ok) {
-        toast({
-          title: "Telefone alterado com sucesso!",
-          description: "Seu telefone foi atualizado.",
-        });
-        setEditOpen(false);
-      } else {
-        toast({
-          title: "Erro ao alterar telefone",
-          description: "Verifique os dados e tente novamente.",
-          variant: "destructive",
-        });
-      }
-    } catch (e) {
+      await alterarTelefone(values.telefone, values.senhaAtual);
       toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor.",
+        title: "Telefone alterado com sucesso!",
+        description: "Seu telefone foi atualizado.",
+      });
+      setEditOpen(false);
+    } catch (e: any) {
+      toast({
+        title: "Erro ao alterar telefone",
+        description: e.response?.data?.error || "Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
@@ -134,66 +133,70 @@ export default function PerfilPage() {
 
   const onAlterarSenha = async (values: z.infer<typeof formSchema>) => {
     try {
-      const response = await fetch('http://localhost:8080/alterarSenha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'senha-atual': values.senhaAtual,
-          'nova-senha': values.novaSenha,
-          'repetir-nova-senha': values.repetirNovaSenha,
-        }),
-        credentials: 'include',
-      });
-      if (response.ok) {
-        toast({
-          title: "Senha alterada com sucesso!",
-          description: "Sua senha foi atualizada.",
-        });
-        setEditOpen(false);
-      } else {
-        toast({
-          title: "Erro ao alterar senha",
-          description: "Verifique os dados e tente novamente.",
-          variant: "destructive",
-        });
-      }
-    } catch (e) {
+      await alterarSenha(values.senhaAtual, values.novaSenha, values.repetirNovaSenha);
       toast({
-        title: "Erro de conexão",
-        description: "Não foi possível conectar ao servidor.",
+        title: "Senha alterada com sucesso!",
+        description: "Sua senha foi atualizada.",
+      });
+      setEditOpen(false);
+    } catch (e: any) {
+      toast({
+        title: "Erro ao alterar senha",
+        description: e.response?.data?.error || "Verifique os dados e tente novamente.",
         variant: "destructive",
       });
     }
   };
 
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserData = async () => {
       try {
-        const response = await fetch('http://localhost:8080/getName', {
-          method: 'GET',
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUserName(data.userName);
-        } else {
+        console.log('Buscando dados do usuário...'); // Debug
+        const data = await getUserName();
+        console.log('Dados recebidos:', data); // Debug
+        
+        if (!data) {
+          console.error('Nenhum dado recebido do servidor'); // Debug
           toast({
-            title: "Erro ao carregar dados",
-            description: "Não foi possível obter seus dados. Tente fazer login novamente.",
-            variant: "destructive",
+            title: 'Erro',
+            description: 'Não foi possível carregar os dados do usuário',
+            variant: 'destructive'
           });
+          router.push('/login');
+          return;
         }
-      } catch (e) {
-        toast({
-          title: "Erro de conexão",
-          description: "Não foi possível conectar ao servidor.",
-          variant: "destructive",
+
+        setUserData(data);
+        form.reset({
+          nome: data.nome || '',
+          email: data.email || '',
+          telefone: data.telefone || '',
+          dataNascimento: data.dataNascimento || '',
+          endereco: data.endereco || ''
         });
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error); // Debug
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os dados do usuário',
+          variant: 'destructive'
+        });
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchUserName();
-  }, [toast]);
+    fetchUserData();
+  }, [form, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   // Dados mockados para o exemplo
   const relatos: RelatoProps[] = [
@@ -230,6 +233,11 @@ export default function PerfilPage() {
     cancelado: { label: 'Cancelado', color: 'bg-red-100 text-red-800 border-red-200' },
   };
   
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -239,9 +247,11 @@ export default function PerfilPage() {
             <CardHeader className="flex flex-col items-center">
               <Avatar className="h-24 w-24 mb-4">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-[#18b190] text-white text-xl">JS</AvatarFallback>
+                <AvatarFallback className="bg-[#18b190] text-white text-xl">
+                  {userData.nome.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
               </Avatar>
-              <CardTitle className="text-center">João Silva</CardTitle>
+              <CardTitle className="text-center">{userData.nome}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">Membro desde Maio 2023</p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge className="bg-[#18b190]">3 Relatos</Badge>
@@ -252,7 +262,7 @@ export default function PerfilPage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">João Silva</span>
+                  <span className="text-sm">{userData.nome}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -260,7 +270,11 @@ export default function PerfilPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">joao@example.com</span>
+                  <span className="text-sm">{userData.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{userData.telefone}</span>
                 </div>
                 
                 <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -511,6 +525,15 @@ export default function PerfilPage() {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+      <div className="mt-4 flex justify-between items-center">
+        <Button
+          onClick={handleLogout}
+          variant="outline"
+          className="text-red-500 hover:text-red-700"
+        >
+          Sair
+        </Button>
       </div>
     </div>
   );

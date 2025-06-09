@@ -3,10 +3,28 @@ package sanea.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 
 import sanea.model.Usuario;
 
 public class LogarDao {
+	
+	private String hashSenha(String senha) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(senha.getBytes(StandardCharsets.UTF_8));
+			StringBuilder hexString = new StringBuilder();
+			for (byte b : hash) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1) hexString.append('0');
+				hexString.append(hex);
+			}
+			return hexString.toString();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	public String logarUsuario(Usuario usuario) {
 		String sql = "SELECT id, senha_hash FROM usuarios WHERE email = ?";
@@ -22,21 +40,18 @@ public class LogarDao {
 			ResultSet rs = ps.executeQuery();
 			
 			if (rs.next()) {
-			    String senhaHash = rs.getString("senha_hash");
-			    System.out.println("Senha CADASTRADA: " + senhaHash);
-			    System.out.println("Senha DIGITADA: " + usuario.getSenha());
-			    
-			    if (usuario.getSenha().equals(senhaHash)) {
-			        // Login bem-sucedido
-			    	System.out.println("LOGADO COM SUCESSO");
-			    	UserID = Integer.toString(rs.getInt("id"));
-			    	
-			    }
+				String senhaHash = rs.getString("senha_hash");
+				String senhaDigitadaHash = hashSenha(usuario.getSenha());
+				
+				if (senhaHash.equals(senhaDigitadaHash)) {
+					System.out.println("LOGADO COM SUCESSO");
+					UserID = Integer.toString(rs.getInt("id"));
+				} else {
+					System.out.println("SENHA INCORRETA");
+				}
 			} else {
-			    // Email ou senha incorretos
-				System.out.println("FALHA AO LOGAR");
+				System.out.println("EMAIL NÃO ENCONTRADO");
 			}
-
 			
 		} catch(Exception e) {
 			System.err.println("Erro ao buscar o login do usuário: " + e.getMessage());

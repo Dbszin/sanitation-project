@@ -5,12 +5,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class MySqlConnection {
-	private static final String URL = "jdbc:mysql://localhost:3306/sanea_mais?useSSL=false&serverTimezone=UTC";
+	private static final String URL = "jdbc:mysql://localhost:3306/sanea";
 	private static final String USER = "root";
-	private static final String SENHA = "root1234";
+	private static final String PASSWORD = "root";
+
 	public static Connection conectar() throws SQLException {
-		
-		return DriverManager.getConnection(URL, USER, SENHA);
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			return DriverManager.getConnection(URL, USER, PASSWORD);
+		} catch (ClassNotFoundException e) {
+			throw new SQLException("Driver MySQL não encontrado", e);
+		}
 	}
-	
 }
