@@ -9,7 +9,7 @@ import java.util.Base64;
 
 public class JwtUtil {
     // Chave secreta em base64 (32 bytes)
-    private static final String SECRET_KEY = "c2FuZWFfc2VjcmV0X2tleV8yMDI0X2Zvcl9qd3Rfc2lnbg==";
+    private static final String SECRET_KEY = "SECRET_KEY";
     private static final long EXPIRATION_TIME = 86400000; // 24 horas em milissegundos
 
     public static String generateToken(String userId) {
